@@ -42,3 +42,6 @@ logs/
 # Local configuration
 config.local.yaml
 config.local.json
+
+
+edge_game_simulator_current.zip
