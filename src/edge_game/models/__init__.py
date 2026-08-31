@@ -1,0 +1,1 @@
+"""Mathematical models used by the edge game simulator."""

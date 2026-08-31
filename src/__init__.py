@@ -1,0 +1,1 @@
+"""Source package for the edge game simulator."""
