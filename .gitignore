@@ -1,47 +1,103 @@
+# ============================================
 # Python
+# ============================================
+
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
+*$py.class
 
 # Virtual environments
 .venv/
 venv/
 env/
+ENV/
 
-# Distribution
+# ============================================
+# Environment variables and secrets
+# ============================================
+
+.env
+.env.*
+!.env.example
+
+# ============================================
+# Python build and packaging
+# ============================================
+
 build/
 dist/
 *.egg-info/
+.eggs/
 
+# ============================================
 # Testing and coverage
+# ============================================
+
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
 
-# IDEs
+# ============================================
+# Type checking and linting
+# ============================================
+
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+
+# ============================================
+# Jupyter
+# ============================================
+
+.ipynb_checkpoints/
+
+# ============================================
+# IDE and editors
+# ============================================
+
 .vscode/
 .idea/
 
-# OS files
+*.swp
+*.swo
+*~
+
+# ============================================
+# Operating system files
+# ============================================
+
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Project outputs
+# ============================================
+# Logs
+# ============================================
+
+*.log
+
+# ============================================
+# Generated experiment output
+# ============================================
+
 outputs/
-results/
-logs/
 
-# Jupyter
-.ipynb_checkpoints/
+# ============================================
+# Temporary comparison files
+# ============================================
 
-# Environment files
-.env
-.env.*
+run1.txt
+run2.txt
+run1_normalized.txt
+run2_normalized.txt
+summary.txt
 
-# Local configuration
-config.local.yaml
-config.local.json
+# ============================================
+# Temporary files
+# ============================================
 
-
+*.tmp
+*.temp
 edge_game_simulator_current.zip
