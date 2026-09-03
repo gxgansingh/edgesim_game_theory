@@ -436,7 +436,7 @@ class PriorityAwareMeanFieldSolver:
             MultiPopulationMeanField()
         )
 
-        for priority in (1, 2, 3):
+        for priority in (1, 2, 3, 4):
             distribution.add_population(
                 self._initial_population(
                     priority
@@ -481,7 +481,7 @@ class PriorityAwareMeanFieldSolver:
 
             best_response = {}
 
-            for priority in (1, 2, 3):
+            for priority in (1, 2, 3, 4):
                 best_response[priority] = (
                     self._solve_policy(
                         priority=priority,
@@ -512,7 +512,7 @@ class PriorityAwareMeanFieldSolver:
                 MultiPopulationMeanField()
             )
 
-            for priority in (1, 2, 3):
+            for priority in (1, 2, 3, 4):
                 population = (
                     distribution.get_population(
                         priority
