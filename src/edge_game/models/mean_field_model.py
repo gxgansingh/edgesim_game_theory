@@ -79,12 +79,14 @@ class MeanFieldParameters:
         0.10,
     )
 
+    # Research utility weights used directly by the HJB objective.
     utility_priority_reward_weight: float = 1.0
     utility_latency_cost_weight: float = 1.0
     utility_resource_cost_weight: float = 1.0
     utility_queue_cost_weight: float = 1.0
     utility_energy_cost_weight: float = 1.0
 
+    # Ablation configuration.
     ablation_variant: str = "full"
 
     def __post_init__(self) -> None:
@@ -92,9 +94,7 @@ class MeanFieldParameters:
 
         if self.ablation_variant not in ABLATION_VARIANTS:
             valid_variants = ", ".join(
-                sorted(
-                    ABLATION_VARIANTS
-                )
+                sorted(ABLATION_VARIANTS)
             )
 
             raise ValueError(
@@ -103,17 +103,13 @@ class MeanFieldParameters:
                 f"Expected one of: {valid_variants}."
             )
 
-        if len(
-            self.population_weights
-        ) != 4:
+        if len(self.population_weights) != 4:
             raise ValueError(
                 "population_weights must contain exactly "
                 "four values for priorities 1 through 4."
             )
 
-        if sum(
-            self.population_weights
-        ) <= 0.0:
+        if sum(self.population_weights) <= 0.0:
             raise ValueError(
                 "Population weights must have a positive total."
             )
@@ -136,20 +132,13 @@ class MeanFieldParameters:
                 f"Unsupported priority class: {priority}."
             )
 
-        parameters = mapping[
-            priority
-        ]
+        parameters = mapping[priority]
 
-        if (
-            self.ablation_variant
-            != "no_priority"
-        ):
+        if self.ablation_variant != "no_priority":
             return parameters
 
-        return (
-            self._priority_neutral_parameters(
-                parameters
-            )
+        return self._priority_neutral_parameters(
+            parameters
         )
 
     def _priority_neutral_parameters(
@@ -160,12 +149,12 @@ class MeanFieldParameters:
         Remove priority-dependent service preferences.
 
         Arrival rates remain priority-specific because they describe
-        workload characteristics rather than service preferences.
+        workload population characteristics rather than policy preference.
+        Service-related parameters are replaced by their population-weighted
+        averages.
         """
 
-        weights = (
-            self.population_weights
-        )
+        weights = self.population_weights
 
         priority_parameters = (
             self.priority_1,
@@ -175,9 +164,7 @@ class MeanFieldParameters:
         )
 
         total_weight = float(
-            sum(
-                weights
-            )
+            sum(weights)
         )
 
         if total_weight <= 1e-12:
@@ -187,8 +174,7 @@ class MeanFieldParameters:
 
         neutral_congestion_weight = (
             sum(
-                weight
-                * item.congestion_weight
+                weight * item.congestion_weight
                 for weight, item in zip(
                     weights,
                     priority_parameters,
@@ -199,8 +185,7 @@ class MeanFieldParameters:
 
         neutral_processing_weight = (
             sum(
-                weight
-                * item.processing_weight
+                weight * item.processing_weight
                 for weight, item in zip(
                     weights,
                     priority_parameters,
@@ -211,8 +196,7 @@ class MeanFieldParameters:
 
         neutral_control_weight = (
             sum(
-                weight
-                * item.control_weight
+                weight * item.control_weight
                 for weight, item in zip(
                     weights,
                     priority_parameters,
@@ -222,18 +206,10 @@ class MeanFieldParameters:
         )
 
         return PriorityParameters(
-            arrival_rate=(
-                parameters.arrival_rate
-            ),
-            congestion_weight=(
-                neutral_congestion_weight
-            ),
-            processing_weight=(
-                neutral_processing_weight
-            ),
-            control_weight=(
-                neutral_control_weight
-            ),
+            arrival_rate=parameters.arrival_rate,
+            congestion_weight=neutral_congestion_weight,
+            processing_weight=neutral_processing_weight,
+            control_weight=neutral_control_weight,
         )
 
     def population_weight(
@@ -242,22 +218,14 @@ class MeanFieldParameters:
     ) -> float:
         """Return the configured population weight."""
 
-        if priority not in (
-            1,
-            2,
-            3,
-            4,
-        ):
+        if priority not in (1, 2, 3, 4):
             raise ValueError(
-                f"Unsupported priority class: "
-                f"{priority}."
+                f"Unsupported priority class: {priority}."
             )
 
-        return (
-            self.population_weights[
-                priority - 1
-            ]
-        )
+        return self.population_weights[
+            priority - 1
+        ]
 
 
 class MeanFieldModel:
@@ -265,10 +233,7 @@ class MeanFieldModel:
 
     def __init__(
         self,
-        parameters: (
-            MeanFieldParameters
-            | None
-        ) = None,
+        parameters: MeanFieldParameters | None = None,
     ) -> None:
         """Initialize the mathematical model."""
 
@@ -284,65 +249,58 @@ class MeanFieldModel:
     ) -> float:
         """Return the effective utility weight for an objective component."""
 
-        variant = (
-            self.parameters
-            .ablation_variant
-        )
+        variant = self.parameters.ablation_variant
 
-        if (
-            component
-            == "priority_reward"
-        ):
-            if variant in {
-                "no_priority",
-                "no_priority_reward",
-            }:
+        if component == "priority_reward":
+
+            if variant == "no_priority_reward":
+                return 0.0
+
+            if variant == "no_priority":
                 return 0.0
 
             return (
-                self.parameters
-                .utility_priority_reward_weight
+                self.parameters.utility_priority_reward_weight
             )
 
         if component == "latency":
+
             if variant == "no_latency":
                 return 0.0
 
             return (
-                self.parameters
-                .utility_latency_cost_weight
+                self.parameters.utility_latency_cost_weight
             )
 
         if component == "resource":
+
             if variant == "no_resource":
                 return 0.0
 
             return (
-                self.parameters
-                .utility_resource_cost_weight
+                self.parameters.utility_resource_cost_weight
             )
 
         if component == "queue":
+
             if variant == "no_queue":
                 return 0.0
 
             return (
-                self.parameters
-                .utility_queue_cost_weight
+                self.parameters.utility_queue_cost_weight
             )
 
         if component == "energy":
+
             if variant == "no_energy":
                 return 0.0
 
             return (
-                self.parameters
-                .utility_energy_cost_weight
+                self.parameters.utility_energy_cost_weight
             )
 
         raise ValueError(
-            f"Unsupported utility component: "
-            f"{component}."
+            f"Unsupported utility component: {component}."
         )
 
     def drift(
@@ -355,8 +313,7 @@ class MeanFieldModel:
         """Calculate the HJB/FPK state drift."""
 
         parameters = (
-            self.parameters
-            .priority_parameters(
+            self.parameters.priority_parameters(
                 priority
             )
         )
@@ -387,14 +344,11 @@ class MeanFieldModel:
 
         return (
             parameters.arrival_rate
-            + self.parameters
-            .congestion_coupling
+            + self.parameters.congestion_coupling
             * mean_field
-            - self.parameters
-            .processing_rate
+            - self.parameters.processing_rate
             * control
-            - self.parameters
-            .congestion_decay
+            - self.parameters.congestion_decay
             * state
         )
 
@@ -405,11 +359,10 @@ class MeanFieldModel:
         control: np.ndarray,
         mean_field: np.ndarray,
     ) -> np.ndarray:
-        """Calculate vectorized HJB/FPK state drift."""
+        """Calculate the HJB/FPK drift for vectorized state inputs."""
 
         parameters = (
-            self.parameters
-            .priority_parameters(
+            self.parameters.priority_parameters(
                 priority
             )
         )
@@ -443,111 +396,12 @@ class MeanFieldModel:
 
         return (
             parameters.arrival_rate
-            + self.parameters
-            .congestion_coupling
+            + self.parameters.congestion_coupling
             * mean_field
-            - self.parameters
-            .processing_rate
+            - self.parameters.processing_rate
             * control
-            - self.parameters
-            .congestion_decay
+            - self.parameters.congestion_decay
             * state
-        )
-
-    def _service_benefit_array(
-        self,
-        priority: int,
-        state: np.ndarray,
-        mean_field: np.ndarray,
-    ) -> np.ndarray:
-        """
-        Calculate the state-dependent benefit of increasing control.
-
-        Higher congestion and larger queues create a larger incentive
-        to allocate additional processing control.
-        """
-
-        parameters = (
-            self.parameters
-            .priority_parameters(
-                priority
-            )
-        )
-
-        state = np.clip(
-            np.asarray(
-                state,
-                dtype=float,
-            ),
-            0.0,
-            1.0,
-        )
-
-        mean_field = np.clip(
-            np.asarray(
-                mean_field,
-                dtype=float,
-            ),
-            0.0,
-            1.0,
-        )
-
-        priority_component = (
-            self._utility_weight(
-                "priority_reward"
-            )
-            * parameters.processing_weight
-            * priority
-            / 4.0
-        )
-
-        latency_component = (
-            self._utility_weight(
-                "latency"
-            )
-            * parameters.congestion_weight
-            * state
-        )
-
-        queue_component = (
-            self._utility_weight(
-                "queue"
-            )
-            * self.parameters
-            .congestion_coupling
-            * mean_field
-        )
-
-        return (
-            priority_component
-            + latency_component
-            + queue_component
-        )
-
-    def _service_benefit(
-        self,
-        priority: int,
-        state: float,
-        mean_field: float,
-    ) -> float:
-        """Calculate the scalar service benefit."""
-
-        values = (
-            self._service_benefit_array(
-                priority=priority,
-                state=np.asarray(
-                    [state],
-                    dtype=float,
-                ),
-                mean_field=np.asarray(
-                    [mean_field],
-                    dtype=float,
-                ),
-            )
-        )
-
-        return float(
-            values[0]
         )
 
     def running_cost_array(
@@ -560,8 +414,7 @@ class MeanFieldModel:
         """Calculate the running cost for vectorized inputs."""
 
         parameters = (
-            self.parameters
-            .priority_parameters(
+            self.parameters.priority_parameters(
                 priority
             )
         )
@@ -597,10 +450,11 @@ class MeanFieldModel:
             self._utility_weight(
                 "priority_reward"
             )
-            * parameters.processing_weight
-            * priority
-            / 4.0
-            * control
+            * (
+                parameters.processing_weight
+                * priority
+                / 4.0
+            )
         )
 
         latency_cost = (
@@ -609,7 +463,6 @@ class MeanFieldModel:
             )
             * parameters.congestion_weight
             * state**2
-            * (1.0 - 0.5 * control)
         )
 
         resource_cost = (
@@ -624,10 +477,8 @@ class MeanFieldModel:
             self._utility_weight(
                 "queue"
             )
-            * self.parameters
-            .congestion_coupling
+            * self.parameters.congestion_coupling
             * mean_field**2
-            * (1.0 - 0.5 * control)
         )
 
         energy_cost = (
@@ -650,20 +501,11 @@ class MeanFieldModel:
         self,
         priority: int,
         value_gradient: np.ndarray,
-        state: np.ndarray | None = None,
-        mean_field: np.ndarray | None = None,
     ) -> np.ndarray:
-        """
-        Calculate the continuous HJB optimal control.
-
-        Utility weights directly influence the control through
-        priority service reward, latency reduction, queue reduction,
-        resource cost, energy cost, and value-gradient dynamics.
-        """
+        """Calculate the continuous HJB optimal control."""
 
         parameters = (
-            self.parameters
-            .priority_parameters(
+            self.parameters.priority_parameters(
                 priority
             )
         )
@@ -673,61 +515,18 @@ class MeanFieldModel:
             dtype=float,
         )
 
-        if state is None:
-            state = np.zeros_like(
-                value_gradient
-            )
-        else:
-            state = np.asarray(
-                state,
-                dtype=float,
-            )
-
-        if mean_field is None:
-            mean_field = np.zeros_like(
-                value_gradient
-            )
-        else:
-            mean_field = np.asarray(
-                mean_field,
-                dtype=float,
-            )
-
-        state = np.broadcast_to(
-            state,
-            value_gradient.shape,
-        )
-
-        mean_field = np.broadcast_to(
-            mean_field,
-            value_gradient.shape,
-        )
-
-        service_benefit = (
-            self._service_benefit_array(
-                priority=priority,
-                state=state,
-                mean_field=mean_field,
-            )
-        )
-
-        resource_weight = (
-            self._utility_weight(
-                "resource"
-            )
-        )
-
-        energy_weight = (
-            self._utility_weight(
-                "energy"
+        numerator = (
+            parameters.processing_weight
+            + (
+                self.parameters.processing_rate
+                * value_gradient
+                / 2.0
             )
         )
 
         denominator = (
-            resource_weight
-            * parameters.processing_weight
-            + energy_weight
-            * parameters.control_weight
+            parameters.processing_weight
+            + parameters.control_weight
         )
 
         if denominator <= 1e-12:
@@ -735,21 +534,8 @@ class MeanFieldModel:
                 value_gradient
             )
 
-        numerator = (
-            resource_weight
-            * parameters.processing_weight
-            + service_benefit
-            + self.parameters
-            .processing_rate
-            * value_gradient
-        )
-
         return np.clip(
-            numerator
-            / (
-                2.0
-                * denominator
-            ),
+            numerator / denominator,
             0.0,
             1.0,
         )
@@ -766,28 +552,23 @@ class MeanFieldModel:
     ) -> np.ndarray:
         """Calculate the stationary HJB residual for vectorized inputs."""
 
-        cost = (
-            self.running_cost_array(
-                priority=priority,
-                state=state,
-                control=control,
-                mean_field=mean_field,
-            )
+        cost = self.running_cost_array(
+            priority=priority,
+            state=state,
+            control=control,
+            mean_field=mean_field,
         )
 
-        drift = (
-            self.drift_array(
-                priority=priority,
-                state=state,
-                control=control,
-                mean_field=mean_field,
-            )
+        drift = self.drift_array(
+            priority=priority,
+            state=state,
+            control=control,
+            mean_field=mean_field,
         )
 
         diffusion_term = (
             0.5
-            * self.parameters
-            .diffusion
+            * self.parameters.diffusion
             * np.asarray(
                 value_second_derivative,
                 dtype=float,
@@ -802,8 +583,7 @@ class MeanFieldModel:
                 dtype=float,
             )
             + diffusion_term
-            - self.parameters
-            .discount_factor
+            - self.parameters.discount_factor
             * np.asarray(
                 value,
                 dtype=float,
@@ -819,57 +599,123 @@ class MeanFieldModel:
     ) -> float:
         """Calculate the priority-aware running cost."""
 
-        values = (
-            self.running_cost_array(
-                priority=priority,
-                state=np.asarray(
-                    [state],
-                    dtype=float,
-                ),
-                control=np.asarray(
-                    [control],
-                    dtype=float,
-                ),
-                mean_field=np.asarray(
-                    [mean_field],
-                    dtype=float,
-                ),
+        parameters = (
+            self.parameters.priority_parameters(
+                priority
             )
         )
 
+        state = float(
+            np.clip(
+                state,
+                0.0,
+                1.0,
+            )
+        )
+
+        control = float(
+            np.clip(
+                control,
+                0.0,
+                1.0,
+            )
+        )
+
+        mean_field = float(
+            np.clip(
+                mean_field,
+                0.0,
+                1.0,
+            )
+        )
+
+        priority_reward = (
+            self._utility_weight(
+                "priority_reward"
+            )
+            * (
+                parameters.processing_weight
+                * priority
+                / 4.0
+            )
+        )
+
+        latency_cost = (
+            self._utility_weight(
+                "latency"
+            )
+            * parameters.congestion_weight
+            * state**2
+        )
+
+        resource_cost = (
+            self._utility_weight(
+                "resource"
+            )
+            * parameters.processing_weight
+            * (1.0 - control) ** 2
+        )
+
+        queue_cost = (
+            self._utility_weight(
+                "queue"
+            )
+            * self.parameters.congestion_coupling
+            * mean_field**2
+        )
+
+        energy_cost = (
+            self._utility_weight(
+                "energy"
+            )
+            * parameters.control_weight
+            * control**2
+        )
+
         return float(
-            values[0]
+            latency_cost
+            + resource_cost
+            + queue_cost
+            + energy_cost
+            - priority_reward
         )
 
     def optimal_control(
         self,
         priority: int,
         value_gradient: float,
-        state: float = 0.0,
-        mean_field: float = 0.0,
     ) -> float:
         """Calculate the continuous HJB optimal control."""
 
-        controls = (
-            self.optimal_control_array(
-                priority=priority,
-                value_gradient=np.asarray(
-                    [value_gradient],
-                    dtype=float,
-                ),
-                state=np.asarray(
-                    [state],
-                    dtype=float,
-                ),
-                mean_field=np.asarray(
-                    [mean_field],
-                    dtype=float,
-                ),
+        parameters = (
+            self.parameters.priority_parameters(
+                priority
             )
         )
 
+        numerator = (
+            parameters.processing_weight
+            + (
+                self.parameters.processing_rate
+                * value_gradient
+                / 2.0
+            )
+        )
+
+        denominator = (
+            parameters.processing_weight
+            + parameters.control_weight
+        )
+
+        if denominator <= 1e-12:
+            return 0.0
+
         return float(
-            controls[0]
+            np.clip(
+                numerator / denominator,
+                0.0,
+                1.0,
+            )
         )
 
     def hamiltonian(
@@ -882,22 +728,18 @@ class MeanFieldModel:
     ) -> float:
         """Calculate the HJB Hamiltonian."""
 
-        cost = (
-            self.running_cost(
-                priority=priority,
-                state=state,
-                control=control,
-                mean_field=mean_field,
-            )
+        cost = self.running_cost(
+            priority=priority,
+            state=state,
+            control=control,
+            mean_field=mean_field,
         )
 
-        drift = (
-            self.drift(
-                priority=priority,
-                state=state,
-                control=control,
-                mean_field=mean_field,
-            )
+        drift = self.drift(
+            priority=priority,
+            state=state,
+            control=control,
+            mean_field=mean_field,
         )
 
         return (
@@ -918,27 +760,23 @@ class MeanFieldModel:
     ) -> float:
         """Calculate the stationary HJB residual."""
 
-        hamiltonian = (
-            self.hamiltonian(
-                priority=priority,
-                state=state,
-                control=control,
-                mean_field=mean_field,
-                value_gradient=value_gradient,
-            )
+        hamiltonian = self.hamiltonian(
+            priority=priority,
+            state=state,
+            control=control,
+            mean_field=mean_field,
+            value_gradient=value_gradient,
         )
 
         diffusion_term = (
             0.5
-            * self.parameters
-            .diffusion
+            * self.parameters.diffusion
             * value_second_derivative
         )
 
         return (
             hamiltonian
             + diffusion_term
-            - self.parameters
-            .discount_factor
+            - self.parameters.discount_factor
             * value
         )
