@@ -692,7 +692,7 @@ def paired_selection_analysis(
         frame=merged,
     )
 
-    for priority in (1, 2, 3):
+    for priority in (1, 2, 3, 4):
         priority_frame = merged.loc[
             merged["baseline_priority"] == priority
         ]
@@ -952,7 +952,7 @@ def paired_decision_audit(
         ]
     )
 
-    for priority in (1, 2, 3):
+    for priority in (1, 2, 3, 4):
         priority_frame = merged.loc[
             merged["baseline_priority"] == priority
         ]
