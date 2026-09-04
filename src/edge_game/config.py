@@ -50,7 +50,6 @@ class SimulationConfig:
     medium_priority_share: float = 0.40
     low_priority_share: float = 0.30
 
-
     # Priority-aware service configuration.
     priority_service_weight_critical: float = 1.75
     priority_service_weight_high: float = 1.50
@@ -105,6 +104,30 @@ class SimulationConfig:
     resource_summary_update_interval: int = 1
 
     maximum_queue_length: int = 20
+
+    # Active external network-load factor used by the feasibility model.
+    network_load: float = 0.0
+
+    # Network-load experiment configuration.
+    network_load_levels: tuple[float, ...] = (
+        0.10,
+        0.30,
+        0.50,
+        0.70,
+        0.90,
+    )
+
+    # Network load affects the latency pressure seen by feasibility filtering.
+    network_load_latency_multiplier: float = 1.0
+
+    # Feasibility-audit latency model.
+    base_network_latency: float = 2.0
+    latency_load_penalty: float = 8.0
+    latency_queue_penalty: float = 0.75
+    latency_workload_penalty: float = 0.50
+
+    # Feasibility-audit energy model.
+    energy_per_cpu_work_unit: float = 0.25
 
     # Repeated experiment configuration.
     experiment_repetitions: int = 10
