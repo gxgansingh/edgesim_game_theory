@@ -10,6 +10,7 @@ from .ablation import run_ablation_experiment
 from .module1 import run_module1_experiment
 from .module2 import run_module2_experiment
 from .module3 import run_module3_experiment
+from .performance_matrix import run_performance_matrix
 from .module2_comparison import (
     generate_module2_comparison,
 )
@@ -31,6 +32,7 @@ VALID_COMMANDS = {
     "module2",
     "module2-comparison",
     "module3",
+    "performance-matrix",
     "ablation",
     "robustness",
     "robustness-analysis",
@@ -48,7 +50,7 @@ def main() -> None:
         raise SystemExit(
             "Usage: python -m src.edge_game.experiments "
             "{module1|module2|module3|module2-comparison|"
-            "ablation|robustness|"
+            "ablation|performance-matrix|robustness|"
             "robustness-analysis|robustness-diagnostic|"
             "robustness-report}"
         )
@@ -398,6 +400,27 @@ def main() -> None:
                 f"{result[metric].mean():.6f}"
             )
 
+        return
+
+    if command == "performance-matrix":
+        output_directory = (
+            Path(config.output_directory)
+            / "performance_matrix"
+        )
+
+        result = run_performance_matrix(
+            config=config,
+            seeds=seeds,
+            output_directory=output_directory,
+        )
+
+        print("Performance-matrix experiment completed.")
+        print(f"Network-load levels: {len(config.network_load_levels)}")
+        print(f"Seeds per load level: {len(seeds)}")
+        print(f"Results saved to: {output_directory}")
+        print(f"Matrix: {output_directory / 'aggregated' / 'performance_matrix.csv'}")
+        print(f"Report: {output_directory / 'performance_matrix_report.md'}")
+        print(f"Figures: {output_directory / 'figures'}")
         return
 
     output_directory = (
