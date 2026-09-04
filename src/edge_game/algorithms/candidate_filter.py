@@ -54,9 +54,16 @@ def estimate_node_latency(
         + node.bandwidth_load_ratio()
     ) / 3.0
 
+    network_pressure = (
+        config.network_load_latency_multiplier
+        * getattr(config, "network_load", 0.0)
+    )
+
     return float(
         config.base_network_latency
-        + config.latency_load_penalty * load_pressure
+        + config.latency_load_penalty
+        * load_pressure
+        * (1.0 + network_pressure)
         + config.latency_queue_penalty * node.queue_length
         + config.latency_workload_penalty * task.workload_size
     )
