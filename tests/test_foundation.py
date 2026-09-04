@@ -18,6 +18,7 @@ from src.edge_game.algorithms.hjb.state import (
     MeanFieldState,
 )
 from src.edge_game.algorithms.candidate_filter import (
+    build_feasibility_audit,
     filter_feasible_nodes,
 )
 from src.edge_game.algorithms.utility import (
@@ -301,6 +302,100 @@ from src.edge_game.models.mean_field_model import (
     MeanFieldParameters,
 )
 
+
+def test_resource_filtering_checks_all_required_dimensions() -> None:
+    """Verify CPU, memory, bandwidth, latency, energy, and queue checks."""
+    from src.edge_game.entities.edge_node import EdgeNode
+    from src.edge_game.entities.task import Task
+
+    config = SimulationConfig(
+        base_network_latency=2.0,
+        latency_load_penalty=8.0,
+        latency_queue_penalty=0.75,
+        latency_workload_penalty=0.50,
+        energy_per_cpu_work_unit=0.25,
+        maximum_queue_length=2,
+    )
+
+    task = Task(
+        task_id=99,
+        priority=4,
+        cpu_demand=5.0,
+        memory_demand=4.0,
+        bandwidth_demand=5.0,
+        latency_requirement=20.0,
+        energy_budget=10.0,
+        workload_size=4.0,
+    )
+
+    node = EdgeNode(
+        node_id=1,
+        server_id=0,
+        cpu_capacity=10.0,
+        memory_capacity=8.0,
+        bandwidth_capacity=20.0,
+        energy_capacity=100.0,
+        queue_length=0,
+    )
+
+    audit = build_feasibility_audit(
+        task=task,
+        nodes=[node],
+        config=config,
+    )[0]
+
+    assert audit.cpu_pass
+    assert audit.memory_pass
+    assert audit.bandwidth_pass
+    assert audit.latency_pass
+    assert audit.energy_pass
+    assert audit.queue_pass
+    assert audit.feasible
+
+
+def test_resource_filtering_excludes_infeasible_nodes() -> None:
+    """Verify an infeasible node is removed before policy selection."""
+    from src.edge_game.entities.edge_node import EdgeNode
+    from src.edge_game.entities.task import Task
+
+    config = SimulationConfig()
+    task = Task(
+        task_id=100,
+        priority=4,
+        cpu_demand=8.0,
+        memory_demand=8.0,
+        bandwidth_demand=15.0,
+        latency_requirement=50.0,
+        energy_budget=20.0,
+        workload_size=1.0,
+    )
+
+    feasible = EdgeNode(
+        node_id=1,
+        server_id=0,
+        cpu_capacity=10.0,
+        memory_capacity=16.0,
+        bandwidth_capacity=30.0,
+        energy_capacity=100.0,
+    )
+    infeasible = EdgeNode(
+        node_id=2,
+        server_id=0,
+        cpu_capacity=4.0,
+        memory_capacity=16.0,
+        bandwidth_capacity=30.0,
+        energy_capacity=100.0,
+    )
+
+    candidates = filter_feasible_nodes(
+        task=task,
+        nodes=[feasible, infeasible],
+        config=config,
+    )
+
+    assert [node.node_id for node in candidates] == [1]
+
+
 def test_priority_populations_are_created() -> None:
     """Verify all priority populations are represented."""
     model = MeanFieldModel()
@@ -328,7 +423,7 @@ def test_priority_populations_are_created() -> None:
 
     assert set(
         result.distribution.populations.keys()
-    ) == {1, 2, 3}
+    ) == {1, 2, 3, 4}
 
 
 def test_mean_field_density_is_normalized() -> None:
@@ -563,7 +658,7 @@ def test_mean_field_optimal_control_is_continuous() -> None:
     """Verify the analytical control remains within valid bounds."""
     model = MeanFieldModel()
 
-    for priority in (1, 2, 3):
+    for priority in (1, 2, 3, 4):
         for gradient in (
             -10.0,
             -1.0,
@@ -652,11 +747,11 @@ def test_fpk_solver_returns_finite_residual() -> None:
 
     assert len(
         result.fpk_iterations
-    ) == 3
+    ) == 4
 
     assert len(
         result.fpk_residuals
-    ) == 3
+    ) == 4
 
     for residual in (
         result.fpk_residuals.values()
