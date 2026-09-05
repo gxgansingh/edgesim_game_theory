@@ -17,7 +17,7 @@ from .robustness import run_robustness_experiment
 from .robustness_analysis import generate_robustness_analysis_outputs
 from .robustness_diagnostic import generate_diagnostic_outputs
 from .robustness_report import generate_robustness_report
-from .utility_sensitivity import run_utility_weight_sensitivity, save_utility_sensitivity_result
+from .utility_sensitivity import run_utility_weight_sensitivity
 from .visualization import generate_robustness_figures, generate_utility_sensitivity_figures
 
 
@@ -119,7 +119,7 @@ def _filtering_snapshot(output_directory: Path) -> list[str]:
         return ["Resource-filtering summary was not available."]
 
     lines: list[str] = []
-    for metric in ("total_candidate_checks", "feasible_candidate_checks", "filtered_candidate_checks", "filtering_ratio"):
+    for metric in ("total_node_checks", "feasible_node_checks", "filtered_node_checks", "filtering_ratio", "search_space_reduction_ratio"):
         frame = summary.loc[summary["metric"] == metric]
         if frame.empty:
             continue
@@ -182,6 +182,7 @@ def _write_master_report(
         "",
         "Filtering is a feasibility stage. It does not select the final node. "
         "The Mean-Field/game-theoretic policy performs selection from the remaining feasible candidates.",
+        "The professor-facing visual audit is generated at `module2/figures/resource_filtering_selection_audit.png`.",
         "",
         "## Network-Load Performance",
         "",
@@ -250,12 +251,12 @@ def run_full_research_pipeline(
     generate_robustness_figures(robustness_dir)
 
     utility_dir = base_output / "utility_sensitivity"
-    utility_result = run_utility_weight_sensitivity(
+    run_utility_weight_sensitivity(
         config=config,
         seeds=seeds,
+        scenarios=config.workload_scenarios,
         output_directory=utility_dir,
     )
-    save_utility_sensitivity_result(utility_result, utility_dir)
     generate_utility_sensitivity_figures(utility_dir)
 
     print("[7/7] Generating final report...", flush=True)
