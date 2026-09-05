@@ -93,6 +93,15 @@ run2.txt
 run1_normalized.txt
 run2_normalized.txt
 summary.txt
+current_config.txt
+current_mean_field_model.txt
+current_mean_field_solver.txt
+current_mean_field_structures.txt
+current_policy.txt
+current_population.txt
+current_runner.txt
+current_statistics.txt
+current_test_foundation.txt
 
 # ============================================
 # Temporary files
@@ -101,3 +110,5 @@ summary.txt
 *.tmp
 *.temp
 edge_game_simulator_current.zip
+fig_merged.pdf
+figs/
