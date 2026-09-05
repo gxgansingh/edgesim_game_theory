@@ -1368,3 +1368,41 @@ def test_ablation_summary_classifies_significant_effects() -> None:
     assert row["significant_regressions"] == 1
     assert row["net_significant_effects"] == 0
     assert row["overall_classification"] == "mixed"
+
+def test_module2_generates_resource_filtering_selection_audit(tmp_path) -> None:
+    """Verify Module-2 writes the professor-facing filtering evidence."""
+    from src.edge_game.experiments.module2 import run_module2_experiment
+
+    config = SimulationConfig(
+        simulation_steps=2,
+        tasks_per_step=2,
+        number_of_servers=1,
+        nodes_per_server=3,
+        mean_field_state_points=11,
+        mean_field_max_iterations=3,
+        fpk_max_iterations=5,
+        output_directory=str(tmp_path),
+    )
+
+    output_directory = tmp_path / "module2"
+    run_module2_experiment(
+        config=config,
+        seeds=(1,),
+        output_directory=output_directory,
+    )
+
+    assert (
+        output_directory
+        / "raw"
+        / "resource_filtering_audit.csv"
+    ).exists()
+    assert (
+        output_directory
+        / "aggregated"
+        / "resource_filtering_summary.csv"
+    ).exists()
+    assert (
+        output_directory
+        / "figures"
+        / "resource_filtering_selection_audit.png"
+    ).exists()
