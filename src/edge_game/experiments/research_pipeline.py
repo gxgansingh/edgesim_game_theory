@@ -234,7 +234,12 @@ def run_full_research_pipeline(
     run_performance_matrix(config, seeds, base_output / "performance_matrix")
 
     print("[5/7] Running ablation analysis...", flush=True)
-    run_ablation_experiment(config, seeds, base_output / "ablation")
+    run_ablation_experiment(
+        config=config,
+        seeds=seeds,
+        scenarios=config.workload_scenarios,
+        output_directory=base_output / "ablation",
+    )
 
     print("[6/7] Running robustness and utility-sensitivity analysis...", flush=True)
     robustness_dir = base_output / "robustness"
