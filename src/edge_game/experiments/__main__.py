@@ -138,6 +138,21 @@ def main() -> None:
         )
 
         print(
+            f"Resource filtering audit: "
+            f"{output_directory / 'raw' / 'resource_filtering_audit.csv'}"
+        )
+
+        print(
+            f"Filtering summary: "
+            f"{output_directory / 'aggregated' / 'resource_filtering_summary.csv'}"
+        )
+
+        print(
+            f"Professor screenshot: "
+            f"{output_directory / 'figures' / 'resource_filtering_selection_audit.png'}"
+        )
+
+        print(
             "\nMean metric results:"
         )
 
@@ -242,6 +257,21 @@ def main() -> None:
         print(
             f"Figures: "
             f"{output_directory / 'figures'}"
+        )
+
+        print(
+            f"Resource filtering audit: "
+            f"{output_directory / 'raw' / 'resource_filtering_audit.csv'}"
+        )
+
+        print(
+            f"Filtering summary: "
+            f"{output_directory / 'aggregated' / 'resource_filtering_summary.csv'}"
+        )
+
+        print(
+            f"Professor screenshot: "
+            f"{output_directory / 'figures' / 'resource_filtering_selection_audit.png'}"
         )
 
         print(
@@ -391,6 +421,21 @@ def main() -> None:
         print(
             f"Figures: "
             f"{output_directory / 'figures'}"
+        )
+
+        print(
+            f"Resource filtering audit: "
+            f"{output_directory / 'raw' / 'resource_filtering_audit.csv'}"
+        )
+
+        print(
+            f"Filtering summary: "
+            f"{output_directory / 'aggregated' / 'resource_filtering_summary.csv'}"
+        )
+
+        print(
+            f"Professor screenshot: "
+            f"{output_directory / 'figures' / 'resource_filtering_selection_audit.png'}"
         )
 
         print(
