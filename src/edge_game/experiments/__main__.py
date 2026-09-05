@@ -11,6 +11,7 @@ from .module1 import run_module1_experiment
 from .module2 import run_module2_experiment
 from .module3 import run_module3_experiment
 from .performance_matrix import run_performance_matrix
+from .research_pipeline import run_full_research_pipeline
 from .module2_comparison import (
     generate_module2_comparison,
 )
@@ -33,6 +34,7 @@ VALID_COMMANDS = {
     "module2-comparison",
     "module3",
     "performance-matrix",
+    "full-evaluation",
     "ablation",
     "robustness",
     "robustness-analysis",
@@ -50,7 +52,7 @@ def main() -> None:
         raise SystemExit(
             "Usage: python -m src.edge_game.experiments "
             "{module1|module2|module3|module2-comparison|"
-            "ablation|performance-matrix|robustness|"
+            "ablation|performance-matrix|full-evaluation|robustness|"
             "robustness-analysis|robustness-diagnostic|"
             "robustness-report}"
         )
@@ -58,6 +60,14 @@ def main() -> None:
     config = SimulationConfig()
 
     command = sys.argv[1]
+
+    if command == "full-evaluation":
+        result = run_full_research_pipeline(config)
+        print("Full research evaluation completed.")
+        print(f"Results: {result.output_directory}")
+        print(f"Manifest: {result.manifest}")
+        print(f"Final report: {result.master_report}")
+        return
 
     seeds = tuple(
         range(
