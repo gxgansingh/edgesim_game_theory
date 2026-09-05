@@ -129,6 +129,18 @@ class SimulationConfig:
     # Feasibility-audit energy model.
     energy_per_cpu_work_unit: float = 0.25
 
+    # Load-balancer benchmark configuration.
+    # The benchmark uses a compact 40-tick trace so the per-node utilization
+    # curve remains comparable to a presentation-scale load-balancing plot.
+    benchmark_simulation_steps: int = 2500
+    benchmark_mean_field_state_points: int = 11
+    benchmark_mean_field_max_iterations: int = 20
+    benchmark_mean_field_tolerance: float = 1e-2
+    benchmark_mean_field_policy_tolerance: float = 1e-3
+    benchmark_mean_field_raw_policy_tolerance: float = 1e-2
+    benchmark_fpk_max_iterations: int = 50
+    benchmark_fpk_tolerance: float = 1e-2
+
     # Repeated experiment configuration.
     experiment_repetitions: int = 10
     experiment_seed_start: int = 42

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from ..algorithms.candidate_filter import (
-    filter_feasible_nodes,
+    build_feasibility_audit,
 )
 from ..algorithms.utility import (
     calculate_utility,
@@ -23,6 +23,8 @@ class ExperimentResult:
     metrics: dict
     selection_records: list[dict]
     decision_records: list[dict]
+    filtering_records: list[dict]
+    node_state_records: list[dict]
 
 
 def run_policy_experiment(
@@ -38,6 +40,8 @@ def run_policy_experiment(
     metrics = MetricCollector()
 
     nodes = environment.all_nodes()
+
+    filtering_records: list[dict] = []
 
     next_task_id = 0
 
@@ -55,12 +59,50 @@ def run_policy_experiment(
                 task=task
             )
 
-            candidates = (
-                filter_feasible_nodes(
-                    task=task,
-                    nodes=nodes,
-                )
+            feasibility_audits = build_feasibility_audit(
+                task=task,
+                nodes=nodes,
+                config=config,
             )
+
+            filtering_records.extend(
+                [
+                    {
+                        "task_id": audit.task_id,
+                        "priority": audit.priority,
+                        "priority_class": audit.priority_class,
+                        "node_id": audit.node_id,
+                        "server_id": audit.server_id,
+                        "cpu_pass": audit.cpu_pass,
+                        "memory_pass": audit.memory_pass,
+                        "bandwidth_pass": audit.bandwidth_pass,
+                        "latency_pass": audit.latency_pass,
+                        "energy_pass": audit.energy_pass,
+                        "queue_pass": audit.queue_pass,
+                        "feasible": audit.feasible,
+                        "cpu_available": audit.cpu_available,
+                        "cpu_required": audit.cpu_required,
+                        "memory_available": audit.memory_available,
+                        "memory_required": audit.memory_required,
+                        "bandwidth_available": audit.bandwidth_available,
+                        "bandwidth_required": audit.bandwidth_required,
+                        "estimated_latency": audit.estimated_latency,
+                        "latency_limit": audit.latency_limit,
+                        "estimated_energy": audit.estimated_energy,
+                        "energy_budget": audit.energy_budget,
+                        "queue_length": audit.queue_length,
+                        "queue_limit": audit.queue_limit,
+                        "rejection_reasons": audit.rejection_reasons,
+                    }
+                    for audit in feasibility_audits
+                ]
+            )
+
+            candidates = [
+                node
+                for node, audit in zip(nodes, feasibility_audits)
+                if audit.feasible
+            ]
 
             if not candidates:
                 metrics.record_rejection(
@@ -135,4 +177,6 @@ def run_policy_experiment(
         decision_records=list(
             metrics.decision_records
         ),
+        filtering_records=filtering_records,
+        node_state_records=list(metrics.node_state_history),
     )
