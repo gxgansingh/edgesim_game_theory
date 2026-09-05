@@ -39,6 +39,10 @@ class MetricCollector:
         default_factory=list
     )
 
+    node_state_history: List[dict] = field(
+        default_factory=list
+    )
+
     selection_records: List[dict] = field(
         default_factory=list
     )
@@ -56,6 +60,7 @@ class MetricCollector:
             1: 0,
             2: 0,
             3: 0,
+            4: 0,
         }
     )
 
@@ -64,6 +69,7 @@ class MetricCollector:
             1: 0,
             2: 0,
             3: 0,
+            4: 0,
         }
     )
 
@@ -321,6 +327,20 @@ class MetricCollector:
         self.queue_length_history.append(
             average_queue
         )
+
+        tick = len(self.utilization_history) - 1
+        for node in nodes:
+            self.node_state_history.append(
+                {
+                    "tick": int(tick),
+                    "node_id": int(node.node_id),
+                    "server_id": int(node.server_id),
+                    "cpu_utilization": float(node.load_ratio()),
+                    "memory_utilization": float(node.memory_load_ratio()),
+                    "bandwidth_utilization": float(node.bandwidth_load_ratio()),
+                    "queue_length": int(node.queue_length),
+                }
+            )
 
     def priority_success_ratios(self) -> dict[int, float]:
         """Calculate completion ratios for each priority class."""
