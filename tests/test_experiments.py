@@ -1406,3 +1406,39 @@ def test_module2_generates_resource_filtering_selection_audit(tmp_path) -> None:
         / "figures"
         / "resource_filtering_selection_audit.png"
     ).exists()
+
+
+def test_load_balancer_benchmark_generates_single_and_ten_run_outputs(tmp_path):
+    """Benchmark must generate tabular, plotting, and filtering evidence."""
+    from src.edge_game.config import SimulationConfig
+    from src.edge_game.experiments.benchmark import run_load_balancer_benchmark
+
+    config = SimulationConfig(
+        simulation_steps=4,
+        tasks_per_step=2,
+        number_of_servers=1,
+        nodes_per_server=3,
+        mean_field_state_points=11,
+        mean_field_max_iterations=5,
+        fpk_max_iterations=20,
+        benchmark_simulation_steps=4,
+        benchmark_mean_field_state_points=11,
+        benchmark_mean_field_max_iterations=5,
+        benchmark_fpk_max_iterations=20,
+    )
+
+    outputs = run_load_balancer_benchmark(
+        config=config,
+        seeds=(42, 43),
+        output_directory=tmp_path / "benchmark",
+    )
+
+    for path in outputs.values():
+        assert path.exists()
+
+    assert (tmp_path / "benchmark" / "raw" / "single_run_metrics.csv").exists()
+    assert (tmp_path / "benchmark" / "raw" / "ten_run_benchmark_raw.csv").exists()
+    assert (tmp_path / "benchmark" / "aggregated" / "ten_run_benchmark_summary.csv").exists()
+    assert (tmp_path / "benchmark" / "raw" / "resource_filtering_audit.csv").exists()
+    assert (tmp_path / "benchmark" / "figures" / "single_run_node_utilization.png").exists()
+    assert (tmp_path / "benchmark" / "figures" / "resource_filtering_selection_audit.png").exists()
